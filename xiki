@@ -11,8 +11,11 @@ forbacktickx -E0x 0 script_path {
     printf %s/.*\\0 $XIKI_CONFIG
 }
 backtick -E script { basename $script_path }
-case $1 {
+case -N $1 {
     $script {
+        pipeline { dollarat }
+        pipeline { awk "{ printf(\"ARG%s=%s\\n\",NR,$0) }" }
+        envfile -
         $script_path $@
     }
 }

@@ -1,0 +1,8 @@
+#!/bin/sh
+ed "+$ARG2" "$ARG1" <<END
+c
+${ARG3}
+.
+w
+END
+printf 'Success!\n'
