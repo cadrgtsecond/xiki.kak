@@ -37,7 +37,7 @@ ________________END
         }
         set-register r %sh{
             eval set -- "$kak_quoted_reg_c"
-            xiki "$@" | sed cs/^/  $kak_reg_i/"
+            xiki "$@" | sed "s/^/  $kak_reg_i/"
             printf '\n'
         }
         echo -debug %reg{c}
