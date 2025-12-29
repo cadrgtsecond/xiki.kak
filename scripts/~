@@ -1,0 +1,8 @@
+#!/bin/sh
+if [ -z "$2" ]; then
+    ls -p "$HOME"
+else
+    cd "$HOME" || exit
+    shift
+    exec xiki "$@"
+fi

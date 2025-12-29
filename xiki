@@ -1,0 +1,19 @@
+#!/bin/execlineb
+multisubstitute {
+    importas -iS HOME
+    elgetpositionals -P 2
+}
+importas -SD ${HOME}/.config XDG_CONFIG_HOME
+define XIKI_CONFIG ${XDG_CONFIG_HOME}/xiki
+
+forbacktickx -E0x 0 script_path {
+    foreground { find -L  ${XIKI_CONFIG}/scripts -type f -executable -print0 }
+    printf %s/.*\\0 $XIKI_CONFIG
+}
+backtick -E script { basename $script_path }
+case $1 {
+    $script {
+        $script_path $@
+    }
+}
+false

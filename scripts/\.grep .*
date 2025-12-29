@@ -1,0 +1,16 @@
+#!/bin/sh
+
+if [ -z "$2" ]; then
+    printf %s "$1" | sed "s/.grep/grep -Hn/" | sh
+    exit
+fi
+file=$(printf %s "$2" | cut -d: -f1)
+line=$(printf %s "$2" | cut -d: -f2)
+content=$(printf %s "$2" | cut -d: -f3-)
+ed "+$line" "$file" <<END
+c
+${content}
+.
+w
+END
+printf 'Success!\n'

@@ -1,0 +1,17 @@
+#!/bin/sh
+if [ -d "$1" ]; then
+    if [ -z "$2" ]; then
+        ls -p "$1"
+    else
+        cd "$1" || exit
+        shift
+        exec xiki "$@"
+    fi
+elif [ -f "$1" ]; then
+    xdg-open "$1"
+elif [ -n "$2" ]; then
+    shift
+    exec xiki "$@"
+else
+    exec sh -c "$1"
+fi

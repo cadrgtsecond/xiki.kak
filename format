@@ -1,0 +1,7 @@
+#!/bin/sh
+IFS='
+'
+for file in $(grep '^#!/bin/sh' -l -R scripts/ default); do
+    shfmt -i 4 -w "$file"
+    shellcheck "$file"
+done
