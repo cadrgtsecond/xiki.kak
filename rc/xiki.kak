@@ -1,7 +1,7 @@
 # Xiki
 define-command -docstring "Execute the current line as a Xiki command" \
 xiki-execute %{
-    evaluate-commands -draft -save-regs 'icwr' %{
+    evaluate-commands -itersel -draft -save-regs 'icwr' %{
         execute-keys 'x<a-:><a-;>'
         set-register i ''
         set-register c
@@ -47,7 +47,7 @@ ________________END
 
 define-command -docstring "Clear the output of the current line" \
 xiki-clear %{
-    evaluate-commands -draft -save-regs i %{
+    evaluate-commands -itersel -draft -save-regs i %{
         execute-keys 'x<a-:>'
         set-register i ''
         try %{ execute-keys -draft 's^\s+<ret>"iy' }
