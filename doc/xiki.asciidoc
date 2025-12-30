@@ -29,7 +29,7 @@ Try opening your home directory.
 ----
 
 The output of a Xiki command can itself be treated as a command.
-So you can collapse nested directories.
+So you can open and collapse nested directories.
 Try locating something on your system using the file tree. 
 
 == Xiki as a shell
@@ -61,8 +61,10 @@ This can be used to manipulate files
 ----
 /tmp/xiki-tutorial
   mkdir -p src/
-  printf 'echo hello world!' >> src/coolcommand
+  printf '#!/bin/sh\n' > src/coolcommand
+  printf 'echo hello world!\n' >> src/coolcommand
   chmod +x src/coolcommand
+  ./src/coolcommand
   # Try opening the src directory
   src
   # Also try collapsing and reexpanding the topmost directory
@@ -78,10 +80,10 @@ By commands I really do mean _any_ command
     touch grass
     # . also works instead of ls
     .
-
     # This does a true cd
     # So you can copy stuff outside
     cp coolcommand ../better-src 
+  better-src
   rm -rfi src
 ----
 
@@ -177,6 +179,7 @@ This pattern is very common in Xiki scripts. +
 * If it is present, perform some action, `shift`, and then `exec xiki "$@"` with modified arguments.
 
 === .*
+
 Now we are ready to tackle the default `.*` file.
 This shall explain all the behaviour you saw above.
 
@@ -188,19 +191,17 @@ if [ -d "$1" ]; then
     shift
     exec xiki "$@"
 fi
-
+[ -x "$1 ] && exec "./$1"
 [ -f "$1" ] && exec xdg-open "$1"
-
 [ -z "$2" ] && exec sh -c "$1"
 shift
 exec xiki "$@"
 ----
 
-The first part is identical to our example above, just with an arbitrary file instead of `~`.
+The first part is identical to our example above, just with an arbitrary directory instead of `~`.
 
-Then we check if it is a regular file, and use `xdg-open` on it to open it.
-
-Note that in this case we don't really care about children.
+If it is an executable file, execute it.
+If it is a regular file, use `xdg-open` on it to open it.
 
 The final part is crucial. If there are no children, we execute "$1" as a shell command.
 
@@ -224,6 +225,7 @@ Our https:// example uses a script `https?:.*`
 We don't care about children here, since running a browser won't usually produce any output.
 
 === \.grep .*
+
 Xiki also has many other powerful scripts. A good example is the .grep script.
 
 ----

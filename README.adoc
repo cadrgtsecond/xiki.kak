@@ -7,7 +7,7 @@ all inside of a regular text buffer.
 Xiki.kak is a full implementation of https://www.youtube.com/watch?v=YufgfbUgEgI[Xiki] using Kakoune,
 that does not depend on heavyweight dependencies like Ruby or Emacs.
 
-See link:./docs/xiki.asciidoc[`:doc xiki`] for more information
+See link:./doc/xiki.asciidoc[`:doc xiki`] for more information
 
 == Installation
 Xiki is written in POSIX shell and https://skarnet.org/software/execline[execline]
@@ -45,6 +45,7 @@ Also copy `rc/xiki.kak` and `doc/xiki.asciidoc` to `%val{config}/autoload`
 
 === Manual installation
 * Copy `rc/xiki.kak` to `%val{config}/autoload`.
+* Copy `doc` to `%val{config}/autoload`
 * Install `xiki` at a location visible in `$PATH`. For example `~/.local/bin`
 * Install `default` to `~/.config/xiki/.*`
 ** Be careful about globbing
