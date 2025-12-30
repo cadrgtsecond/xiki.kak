@@ -4,10 +4,10 @@ eXecutable Wiki
 Xiki is a cross between a shell, a filetree and a plumber(a la plan9)
 all inside of a regular text buffer.
 
-Xiki.kak is a full implementation of Xiki using Kakoune,
+Xiki.kak is a full implementation of https://www.youtube.com/watch?v=YufgfbUgEgI[Xiki] using Kakoune,
 that does not depend on heavyweight dependencies like Ruby or Emacs.
 
-See link:./docs/xiki.adoc[`:doc xiki`] for more information
+See link:./docs/xiki.asciidoc[`:doc xiki`] for more information
 
 == Installation
 Xiki is written in POSIX shell and https://skarnet.org/software/execline[execline]
@@ -17,28 +17,35 @@ However, knowledge of execline is not necessary to configure and extend Xiki or 
 Any programming language can be used for this, though POSIX shell is preferred due to its ubiquity.
 execline is used as a "router" of sorts to match rules with regex and dispatch to the appropriate script.
 
-.Semi-automatic installation
+=== With kak-bundle
+[source,kak]
+----
+bundle xiki.kak https://github.com/cadrgtsecond/xiki.kak %{
+    hook global WinSetOption filetype=xiki %{
+        map window normal <ret> ': xiki<ret>'
+    }
+
+    # Scratch buffer should use Xiki!
+    hook global WinCreate '\*scratch\*' %{
+        set-option window filetype xiki
+    }
+}
+bundle-install-hook xiki.kak %{
+    ./install
+    cp -rf doc/ ~/.config/kak/autoload/xiki-doc
+}
+----
+
+=== Semi-automatic installation
 Clone or download the repo to a location and `cd` into it.
 
 Run `./install`
 
-.Manual installation
+Also copy `rc/xiki.kak` and `doc/xiki.asciidoc` to `%val{config}/autoload`
+
+=== Manual installation
 * Copy `rc/xiki.kak` to `%val{config}/autoload`.
 * Install `xiki` at a location visible in `$PATH`. For example `~/.local/bin`
 * Install `default` to `~/.config/xiki/.*`
 ** Be careful about globbing
 * Install `scripts/` to `~/.config/xiki/scripts`
-
-== Configuration
-
-.Recommended configuration
-[source, kakoune]
-----
-hook global WinSetOption filetype=xiki %{
-    map window normal <ret> ': xiki<ret>'
-}
-# Scratch buffer should use Xiki!
-hook global WinCreate \*scratch\* %{
-    set-option window filetype xiki
-}
-----

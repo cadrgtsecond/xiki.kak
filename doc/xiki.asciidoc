@@ -1,0 +1,248 @@
+= Xiki
+
+Xiki is a powerful tool that acts like a combination of a file tree,
+a shell,
+and a plan9 style plumber.
+
+This document aims to explain how it operates.
+This buffer is enabled with Xiki.
+It is recommended that you run this inside of Kakoune itself with the plugin installed
+so that you can try out the commands yourself.
+
+This buffer is not `readonly` like most Kakoune documentation.
+Feel free to modify the commands to try things out.
+
+== Xiki as a file tree
+
+Xiki operates on *commands*,
+which are single lines organized into a hierarchy.
+
+Move your cursor on top of a command and press `<ret>` to execute it.
+
+Pressing `<ret>` again will collapse the output of the command.
+
+Directories and files are a kind of valid command.
+Try opening your home directory.
+
+----
+~
+----
+
+The output of a Xiki command can itself be treated as a command.
+So you can collapse nested directories.
+Try locating something on your system using the file tree. 
+
+== Xiki as a shell
+
+By default, if Xiki can't identify something, it is executed as a shell command.
+
+Try creating a temporary directory by executing the command below.
+
+----
+mkdir -p /tmp/xiki-tutorial && printf 'Success!'
+
+----
+
+Notice how the output of the command was inserted below.
+This could be another command as well.
+
+Furthermore if you have a directory, any commands under it will be executed inside that directory
+
+----
+/tmp/xiki-tutorial
+  git init
+  git status
+  touch README.md
+  ls -A
+----
+
+This can be used to manipulate files
+
+----
+/tmp/xiki-tutorial
+  mkdir -p src/
+  printf 'echo hello world!' >> src/coolcommand
+  chmod +x src/coolcommand
+  # Try opening the src directory
+  src
+  # Also try collapsing and reexpanding the topmost directory
+----
+
+By commands I really do mean _any_ command
+
+----
+/tmp/xiki-tutorial
+  mkdir better-src
+  src
+    cat coolcommand
+    touch grass
+    # . also works instead of ls
+    .
+
+    # This does a true cd
+    # So you can copy stuff outside
+    cp coolcommand ../better-src 
+  rm -rfi src
+----
+
+This feature allows Xiki to be more powerful than a regular file manager.
+A regular file manager requires file manipulation to be built in,
+or alternatively scripted in.
+However, Xiki behaves like a shell, and so it can reuse all the standard utilities
+for file manipulation.
+
+Furthermore, Xiki, residing inside Kakoune,
+can make use of its powerful editing commands for file manipulation.
+
+----
+/tmp/xiki-tutorial
+  # Run this following command.
+  # Then select the output and run <a-s>Itouch <esc>A.txt<esc>
+  # Then, execute the commands using multiple cursors
+  seq 1 10
+  .
+  # Clean up the mess
+  rm *.txt
+----
+
+== Xiki as a plumber
+
+Xiki can also operate like the Plan9 plumber. Try opening the link below
+
+----
+https://www.youtube.com/watch?v=dQw4w9WgXcQ
+----
+
+However, as we have seen above, Xiki operates hierarchically,
+and so is far more powerful than the plan9 plumber could be.
+
+Whenever you run a Xiki command, Xiki will collect the "path" to your command.
+The command at the top of the tree comes first,
+followed by any subnodes,
+and finally the command you have pressed `<ret>` on.
+
+Then it invokes the `xiki` command with each component of the path being an argument,
+`$1`, `$2` etc.
+So `$1` will be the topmost command, `$2` the one below it, and so on.
+
+It is not necessary to understand the code of `xiki`, for it is written in `execline`.
+However, it is a very simple script.
+
+1. First, it checks if any of the patterns under `$XIKI_CONFIG/scripts` matches `$1` +
+** Each file under `$XIKI_CONFIG/scripts` is an executable file
+   whose name is a valid Extended Regular Expression. +
+
+2. If none of the patterns match, it executes `$XIKI_CONFIG/.*` +
+** Note that this file is special. Any scripts for matching go under `scripts/`. +
+  `.*` is named as such for convenient reasons.
+
+By default `XIKI_CONFIG` is set to `$XDG_CONFIG_DIR/xiki`,
+which on most systems is `~/.config/xiki/`
+
+Let us look at some examples
+
+=== scripts/~
+----
+#!/bin/sh
+[ -z "$2" ] && exec ls -p "$HOME"
+cd "$HOME" || exit
+shift
+exec xiki "$@"
+----
+
+This pattern matches the string "~" representing the home directory.
+
+Notice that the script begins with a shebang `#!/bin/sh`.
+You can write Xiki scripts in any programming language.
+`/bin/sh` is preferred due to its portability.
+
+The first line checks if `$2` is empty. If this is the case, that means that this command is executed with no children.
+Hence, it execs into `ls`, leaving the program.
+
+However, if it does have children, then it does a `cd`, and then shifts its arguments.
+
+If you are not aware, `shift` is a shell builtin that shifts the command line arguments.
+In other words +
+* `$1` is removed +
+* `$2` becomes `$1` +
+* `$3` becomes `$2` +
+* etc. +
+Hence consuming the first argument.
+
+Then, it execs into `xiki` with the modified current working directory and arguments.
+
+This pattern is very common in Xiki scripts. +
+* Check if `$2` is absent, to see if there are any children +
+** If it is absent, perform some behaviour. +
+* If it is present, perform some action, `shift`, and then `exec xiki "$@"` with modified arguments.
+
+=== .*
+Now we are ready to tackle the default `.*` file.
+This shall explain all the behaviour you saw above.
+
+----
+#!/bin/sh
+if [ -d "$1" ]; then
+    [ -z "$2" ] && exec ls -p "$1"
+    cd "$1" || exit
+    shift
+    exec xiki "$@"
+fi
+
+[ -f "$1" ] && exec xdg-open "$1"
+
+[ -z "$2" ] && exec sh -c "$1"
+shift
+exec xiki "$@"
+----
+
+The first part is identical to our example above, just with an arbitrary file instead of `~`.
+
+Then we check if it is a regular file, and use `xdg-open` on it to open it.
+
+Note that in this case we don't really care about children.
+
+The final part is crucial. If there are no children, we execute "$1" as a shell command.
+
+If there is a child, then we shift and exec, essentially executing the child command instead of the parent.
+This is what allows our `seq` example from above to function.
+
+=== https?:.*
+
+Returning to the `xdg-open` example,
+note that `xdg-open` is not doing much.
+The actual pattern matching is done by Xiki!
+
+Our https:// example uses a script `https?:.*`
+
+----
+#!/bin/sh
+[ -z "$BROWSER" ] && exec xdg-open "$1"
+"$BROWSER" "$1"
+----
+
+We don't care about children here, since running a browser won't usually produce any output.
+
+=== \.grep .*
+Xiki also has many other powerful scripts. A good example is the .grep script.
+
+----
+/tmp/xiki-tutorial
+   echo "one naughty boy" >> naughtylist
+   echo "one naughty girl" >> naughtylist
+   echo "one good boy" >> naughtylist
+   echo "many good girls" >> naughtylist
+   cat naughtylist
+   # Btw, the output is also a Xiki command. Try modifying it to make all the children good!
+   .grep naughty naughtylist
+----
+
+In general, special xiki commands should begin with a dot by convention.
+
+== Conclusion
+
+Before you go be sure to
+
+----
+rm -rf /tmp/xiki-tutorial
+----

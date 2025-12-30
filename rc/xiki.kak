@@ -63,3 +63,10 @@ xiki %{
         xiki-execute
     }
 }
+
+hook global WinCreate \*doc-xiki\* %{
+    map window normal <ret> ': xiki<ret>'
+    hook window -once NormalIdle .* %{
+        set-option buffer readonly false
+    }
+}
