@@ -1,17 +1,17 @@
 # Xiki
 define-command -docstring "Execute the current line as a Xiki command" \
 xiki-execute %{
-    evaluate-commands -itersel -draft -save-regs 'icwr' %{
+    evaluate-commands -itersel -draft -save-regs 'aicwr' %{
         execute-keys 'x<a-:><a-;>'
         set-register i ''
         set-register c
-        try %{ execute-keys -draft 's^\s+<ret>"iy' }
+        try %{ execute-keys -draft 's^\h+<ret>"iy' }
         echo -debug %sh{
             while true; do
                 cat >"$kak_command_fifo" <<________________END
                     set-register w ''
                     try %{ execute-keys -draft 's\A\h+<ret>"wy' }
-                    execute-keys -draft '<a-:><a-;>;x_"ay'
+                    try %{ execute-keys -draft '<a-:><a-;>;x_"ay' }
                     set-register c %reg{a} %reg{c}
                     echo -to-file $kak_response_fifo "%reg{w}"
 ________________END
@@ -40,7 +40,6 @@ ________________END
             xiki "$@" | sed "s/^/  $kak_reg_i/"
             printf '\n'
         }
-        echo -debug %reg{c}
         execute-keys -draft '<a-:>"rp'
     }
 }
