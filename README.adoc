@@ -23,6 +23,7 @@ execline is used as a "router" of sorts to match rules with regex and dispatch t
 bundle xiki.kak https://github.com/cadrgtsecond/xiki.kak %{
     hook global WinSetOption filetype=xiki %{
         map window normal <ret> ': xiki<ret>'
+        map window normal <a-ret> ': xiki-execute -fifo<ret>'
     }
 
     # Scratch buffer should use Xiki!
