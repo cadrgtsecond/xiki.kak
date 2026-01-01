@@ -1,0 +1,9 @@
+#!/bin/sh
+[ -n "$2" ] && {
+    shift
+    exec xiki "$@"
+}
+
+exec kak -p "$kak_session" <<END
+evaluate-commands -client '$kak_client' %{ ${1#:} }
+END

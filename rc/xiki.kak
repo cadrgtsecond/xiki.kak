@@ -39,23 +39,27 @@ ________________END
         }
         evaluate-commands %sh{
             if [ -z "$1" ]; then
-                cat <<"________________END"
+                cat <<"____________END"
                     set-register r %sh{
                         eval set -- "$kak_quoted_reg_c"
-                        xiki "$@" | sed "s/^/  $kak_reg_i/"
+                        # $kak_client
+                        # $kak_session
+                        xiki "$@" 2>&1 | sed "s/^/  $kak_reg_i/"
                         printf '\n'
                     }
                     execute-keys -draft '<a-:>"rp'
-________________END
+____________END
             else
                 tmpdir=$(mktemp -td xiki_fifo.XXXXXX)
                 mkfifo "$tmpdir/fifo"
                 eval set -- "$kak_quoted_reg_c"
                 # Note that .* may redirect stderr to stdout. So this is why you still see stderr
-                ( xiki "$@" | sed "s/^/  $kak_reg_i/" >"$tmpdir/fifo" & ) >/dev/null 2>&1 </dev/null
-                cat <<________________END
+                # $kak_client
+                # $kak_session
+                ( xiki "$@" 2>&1 | sed "s/^/  $kak_reg_i/" >"$tmpdir/fifo" & ) >/dev/null 2>&1 </dev/null
+                cat <<____________END
                     hook global -once NormalIdle .* %{ edit -scroll -fifo "$tmpdir/fifo" *xiki* }
-________________END
+____________END
             fi
         }
     }
