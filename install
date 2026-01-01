@@ -3,7 +3,7 @@
 
 importas -iS HOME
 importas -SD ${HOME}/.config XDG_CONFIG_HOME
-if { mkdir -p ${XDG_CONFIG_HOME}/xiki }
+if { mkdir -p ${XDG_CONFIG_HOME}/xiki/scripts }
 if { cp -Trf ./scripts ${XDG_CONFIG_HOME}/xiki/scripts }
 if { cp -f ./default ${XDG_CONFIG_HOME}/xiki/.* }
 importas -iS PATH

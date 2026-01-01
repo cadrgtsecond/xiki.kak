@@ -1,0 +1,6 @@
+#!/bin/sh
+kak -p "$kak_session" <<END
+evaluate-commands -client '$kak_client' %{
+    edit '$PWD/$ARG2'
+}
+END
