@@ -4,9 +4,9 @@
 importas -iS HOME
 importas -SD ${HOME}/.config XDG_CONFIG_HOME
 if { mkdir -p ${XDG_CONFIG_HOME}/xiki }
-if { cp -Tri ./scripts ${XDG_CONFIG_HOME}/xiki/scripts }
-if { cp -i ./default ${XDG_CONFIG_HOME}/xiki/.* }
+if { cp -Trf ./scripts ${XDG_CONFIG_HOME}/xiki/scripts }
+if { cp -f ./default ${XDG_CONFIG_HOME}/xiki/.* }
 importas -iS PATH
 forbacktickx -Ed: bindir { printf %s $PATH }
 if { test $bindir = ${HOME}/.local/bin }
-cp -i ./xiki -t ${HOME}/.local/bin
+cp -f ./xiki -t ${HOME}/.local/bin
