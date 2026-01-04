@@ -56,7 +56,7 @@ ____________END
                 # Note that .* may redirect stderr to stdout. So this is why you still see stderr
                 # $kak_client
                 # $kak_session
-                ( xiki "$@" 2>&1 | sed "s/^/  $kak_reg_i/" >"$tmpdir/fifo" & ) >/dev/null 2>&1 </dev/null
+                ( xiki "$@" 2>&1 >"$tmpdir/fifo" & ) >/dev/null 2>&1 </dev/null
                 cat <<____________END
                     hook global -once NormalIdle .* %{ edit -scroll -fifo "$tmpdir/fifo" *xiki* }
 ____________END
@@ -71,9 +71,7 @@ xiki-clear %{
         execute-keys 'x<a-:>'
         set-register i ''
         try %{ execute-keys -draft 's^\s+<ret>"iy' }
-        # There is a difference between failing to select at least one
-        # and successfully selecting nothing. Hence (...)*
-        execute-keys 'h/(?S)(\n<c-r>i\h.*)*$<ret>_xd'
+        execute-keys ';Ges(?S)\A(\n<c-r>i .*|\n)+<ret>_xd'
     }
 }
 define-command -docstring "Execute the current line as a Xiki command, or clear it if already executed" \
