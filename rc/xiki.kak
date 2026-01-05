@@ -76,10 +76,15 @@ xiki-clear %{
 }
 define-command -docstring "Execute the current line as a Xiki command, or clear it if already executed" \
 xiki %{
-    try %{
-        xiki-clear
-    } catch %{
-        xiki-execute
+    try %{ xiki-clear } catch %{ xiki-execute }
+}
+
+hook global WinSetOption filetype=xiki %{
+    hook -group xiki window InsertChar '\n' %{
+        try %{ execute-keys -draft 'kxs^\h+<ret>yj<a-h>P' }
+    }
+    hook -once -always window WinSetOption filetype=.* %{
+        remove-hooks window xiki
     }
 }
 
@@ -87,5 +92,8 @@ hook global WinCreate \*doc-xiki\* %{
     map window normal <ret> ': xiki<ret>'
     hook window -once NormalIdle .* %{
         set-option buffer readonly false
+    }
+    hook -group xiki window InsertChar '\n' %{
+        try %{ execute-keys -draft 'kxs^\h+<ret>yj<a-h>P' }
     }
 }
