@@ -1,5 +1,0 @@
-#!/bin/sh
-[ -z "$2" ] && exec ls -p "$HOME"
-cd "$HOME" || exit
-shift
-exec xiki "$@"

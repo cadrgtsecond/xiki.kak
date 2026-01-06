@@ -5,7 +5,7 @@ if [ -d "$1" ]; then
     shift
     exec xiki "$@"
 fi
-[ -x "./$1" ] && exec "./$1"
+[ -x "$1" ] && exec "$1"
 [ -f "$1" ] && exec xdg-open "$1"
 [ -z "$2" ] && exec sh -c "$1"
 shift

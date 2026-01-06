@@ -13,7 +13,7 @@ forbacktickx -E0x 0 script_path {
 backtick -E script { basename $script_path }
 case -N $1 {
     $script {
-        backtick -E vars { pipeline { dollarat } awk "{ printf(\"export\\nARG%s\\n%s\\n\",NR,$0) }" }
+        backtick -E vars { pipeline { dollarat -n } awk "{ printf(\"export\\nARG%s\\n%s\\n\",NR,$0) }" }
         define -sd"
 " var_split $vars
         $var_split
