@@ -83,6 +83,8 @@ hook global WinSetOption filetype=xiki %{
     hook -group xiki window InsertChar '\n' %{
         try %{ execute-keys -draft 'kxs^\h+<ret>yj<a-h>P' }
     }
+    add-highlighter window/xiki group
+    add-highlighter window/xiki/dirs regex '^\h*([^\n]*/|\.|\.\.|[~/][^\n]*)$' 1:blue
     hook -once -always window WinSetOption filetype=.* %{
         remove-hooks window xiki
     }
