@@ -3,63 +3,63 @@ define-command -params 0..1 -docstring %{
     xiki-execute [-fifo]: execute the current line as a Xiki command
 } \
 xiki-execute %{
-    evaluate-commands -itersel -draft -save-regs 'aicwr' %{
-        execute-keys 'x<a-:><a-;>'
+    evaluate-commands -itersel -draft -save-regs 'aicwtsr^' %{
+        execute-keys -save-regs '' '<a-:><a-;>Z'
         set-register i ''
         set-register c
-        try %{ execute-keys -draft 's^\h+<ret>"iy' }
+        try %{ execute-keys -draft 's\A\h+<ret>"iy' }
         echo -debug %sh{
             while true; do
-                cat >"$kak_command_fifo" <<________________END
-                    set-register w ''
-                    try %{ execute-keys -draft 's\A\h+<ret>"wy' }
-                    try %{ execute-keys -draft '<a-:><a-;>;x_"ay' }
+                cat >"$kak_command_fifo" <<END
+                    set-register w '  '
+                    try %{ execute-keys -draft '_"ay' }
                     set-register c %reg{a} %reg{c}
-                    echo -to-file $kak_response_fifo "%reg{w}"
-________________END
-                spaces=$(wc -c <"$kak_response_fifo")
-                if [ "$spaces" -eq 0 ]; then
-                    break
-                fi
-                next_spaces=$(( spaces - 1))
-                cat >"$kak_command_fifo" <<________________END
+
                     try %{
-                        execute-keys '<a-:><a-;>'
-                        execute-keys '<a-?>^\h{0,$next_spaces}[^\h\n]<ret>x'
+                        execute-keys -draft 's\A\h+<ret>"wy'
+                        execute-keys '<a-?>^<c-r>w<backspace><backspace>[^\h\n]<ret>;x'
                         echo -to-file $kak_response_fifo 1
                     } catch %{
                         echo -to-file $kak_response_fifo 0
                     }
-________________END
+END
                 status=$(cat "$kak_response_fifo")
                 if [ "$status" -eq 0 ]; then
                     break
                 fi
             done
         }
-        evaluate-commands %sh{
+        execute-keys -save-regs '' 'z<a-:>;'
+        set-register t %val{timestamp}
+        set-register s %val{selection_desc}
+        evaluate-commands -draft %sh{
+            # $kak_client
+            # $kak_session
             if [ -z "$1" ]; then
-                cat <<"____________END"
-                    set-register r %sh{
-                        eval set -- "$kak_quoted_reg_c"
-                        # $kak_client
-                        # $kak_session
-                        xiki "$@" 2>&1 | sed "s/^/  $kak_reg_i/"
-                        printf '\n'
-                    }
-                    execute-keys -draft '<a-:>"rp'
-____________END
+                eval set -- "$kak_quoted_reg_c"
+                IFS=''
+                {
+                    xiki "$@" 2>&1 | \
+                        while read -r line; do
+                            line=$(printf %s "$line" | sed "s/^/  $kak_reg_i/;s/%/%%/g")
+                            kak -p "$kak_session" <<KAKOUNE
+                              evaluate-commands -client $kak_client -draft -save-regs a %{
+                                  select -timestamp $kak_reg_t $kak_reg_s
+                                  set-register a %%
+$line%
+                                  execute-keys i<c-r>a
+                              }
+KAKOUNE
+                        done
+                } >/dev/null 2>&1 </dev/null &
             else
                 tmpdir=$(mktemp -td xiki_fifo.XXXXXX)
                 mkfifo "$tmpdir/fifo"
                 eval set -- "$kak_quoted_reg_c"
-                # Note that .* may redirect stderr to stdout. So this is why you still see stderr
-                # $kak_client
-                # $kak_session
-                ( xiki "$@" 2>&1 >"$tmpdir/fifo" & ) >/dev/null 2>&1 </dev/null
-                cat <<____________END
+                ( xiki "$@" 2>&1 >"$tmpdir/fifo" ) >/dev/null 2>&1 </dev/null &
+                cat <<END
                     hook global -once NormalIdle .* %{ edit -scroll -fifo "$tmpdir/fifo" *xiki* }
-____________END
+END
             fi
         }
     }
@@ -70,7 +70,7 @@ xiki-clear %{
     evaluate-commands -itersel -draft -save-regs i %{
         execute-keys 'x<a-:>'
         set-register i ''
-        try %{ execute-keys -draft 's^\s+<ret>"iy' }
+        try %{ execute-keys -draft 's\A\s+<ret>"iy' }
         execute-keys ';Ges(?S)\A(\n<c-r>i .*|\n)+<ret>_xd'
     }
 }
@@ -91,7 +91,7 @@ hook global WinSetOption filetype=xiki %{
 }
 
 hook global WinCreate \*doc-xiki\* %{
-    map window normal <ret> ': xiki<ret>'
+    map window normal <ret> 'x: xiki<ret>'
     hook window -once NormalIdle .* %{
         set-option buffer readonly false
     }
