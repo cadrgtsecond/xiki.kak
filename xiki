@@ -4,11 +4,11 @@ multisubstitute {
     elgetpositionals -P 2
 }
 importas -SD ${HOME}/.config XDG_CONFIG_HOME
-define XIKI_CONFIG ${XDG_CONFIG_HOME}/xiki
+importas -SD ${XDG_CONFIG_HOME}/xiki XIKI_HOME
 
 forbacktickx -E0x 0 script_path {
-    foreground { find -L  ${XIKI_CONFIG}/scripts -type f -executable -print0 }
-    printf %s/.*\\0 $XIKI_CONFIG
+    foreground { find -L  ${XIKI_HOME}/scripts -type f -executable -print0 }
+    printf %s/.*\\0 $XIKI_HOME
 }
 backtick -E script { basename $script_path }
 case -N $1 {
