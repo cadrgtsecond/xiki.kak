@@ -46,13 +46,16 @@ pub fn main() !void {
         if (entry.kind != .file) {
             continue;
         }
-        var preg = re.regex_t{};
-        defer re.regfree(&preg);
+        const preg = try alloc.create(re.regex_t);
+        defer {
+            re.regfree(preg);
+            alloc.destroy(preg);
+        }
 
-        const comp_res = re.regcomp(&preg, entry.basename, re.REG_EXTENDED);
+        const comp_res = re.regcomp(preg, entry.basename, re.REG_EXTENDED);
         if (comp_res != 0) {
             const error_buffer = try alloc.alloc(u8, 256);
-            _ = re.regerror(comp_res, &preg, error_buffer.ptr, error_buffer.len);
+            _ = re.regerror(comp_res, preg, error_buffer.ptr, error_buffer.len);
             std.log.err("Failed to compile regex {s}: {s}", .{ entry.basename, error_buffer });
             std.process.exit(1);
         }
@@ -61,7 +64,7 @@ pub fn main() !void {
 
         const matches = try alloc.alloc(re.regmatch_t, preg.re_nsub + 1);
         defer alloc.free(matches);
-        const match_res = re.regexec(&preg, arg1, matches.len, matches.ptr, 0);
+        const match_res = re.regexec(preg, arg1, matches.len, matches.ptr, 0);
         if (match_res != 0 or matches[0].rm_so != 0 or matches[0].rm_eo != arg1.len) {
             continue;
         }

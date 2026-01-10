@@ -37,9 +37,10 @@ END
             # $kak_session
             if [ -z "$1" ]; then
                 eval set -- "$kak_quoted_reg_c"
-                IFS=''
+                IFS='
+                '
                 {
-                    xiki "$@" 2>&1 | sed -e '$a\' | \
+                    xiki "$@" 2>&1 | awk 1 | \
                         while read -r line; do
                             line=$(printf %s "$line" | sed "s/^/  $kak_reg_i/;s/%/%%/g;s/↕/↕↕/g")
                             kak -p "$kak_session" <<KAKOUNE
@@ -71,7 +72,7 @@ xiki-clear %{
         execute-keys 'x<a-:>'
         set-register i ''
         try %{ execute-keys -draft 's\A\s+<ret>"iy' }
-        execute-keys ';Ges(?S)\A(\n<c-r>i .*|\s)+<ret>_Jxd'
+        execute-keys ';Ges(?S)\A(\n<c-r>i .*|\s)+<ret>_xd'
     }
 }
 define-command -docstring "Execute the current line as a Xiki command, or clear it if already executed" \
