@@ -1,1 +1,3 @@
 *.html
+.zig-cache
+zig-out

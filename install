@@ -1,12 +1,16 @@
-#!/bin/execlineb
-# We use execlineb as this also serves as a test for its presence
+#!/bin/sh
+set -eu
+XDG_CONFIG_HOME=${XDG_CONFIG_HOME:-~/.config}
+XIKI_HOME=${XIKI_HOME:-"$XDG_CONFIG_HOME"}
+zig build --release=safe
+mkdir -p "$XDG_CONFIG_HOME/xiki/scripts"
+cp -rf ./scripts "$XDG_CONFIG_HOME/xiki/scripts"
+cp -f ./default "$XDG_CONFIG_HOME/xiki/default"
 
-importas -iS HOME
-importas -SD ${HOME}/.config XDG_CONFIG_HOME
-if { mkdir -p ${XDG_CONFIG_HOME}/xiki/scripts }
-if { cp -Trf ./scripts ${XDG_CONFIG_HOME}/xiki/scripts }
-if { cp -f ./default ${XDG_CONFIG_HOME}/xiki/.* }
-importas -iS PATH
-forbacktickx -Ed: bindir { printf %s $PATH }
-if { test $bindir = ${HOME}/.local/bin }
-cp -f ./xiki -t ${HOME}/.local/bin
+IFS=':'
+for i in $PATH; do
+    if [ "$i" = ~/.local/bin ]; then
+        cp -f ./zig-out/bin/xiki -t ~/.local/bin
+        break
+    fi
+done

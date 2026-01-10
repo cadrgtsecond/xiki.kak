@@ -41,14 +41,14 @@ END
                 {
                     xiki "$@" 2>&1 | \
                         while read -r line; do
-                            line=$(printf %s "$line" | sed "s/^/  $kak_reg_i/;s/%/%%/g")
+                            line=$(printf %s "$line" | sed "s/^/  $kak_reg_i/;s/%/%%/g;s/↕/↕↕/g")
                             kak -p "$kak_session" <<KAKOUNE
-                              evaluate-commands -client $kak_client -draft -save-regs a %{
+                              evaluate-commands -client $kak_client -draft -save-regs a %↕
                                   select -timestamp $kak_reg_t $kak_reg_s
                                   set-register a %%
 $line%
                                   execute-keys i<c-r>a
-                              }
+                              ↕
 KAKOUNE
                         done
                 } >/dev/null 2>&1 </dev/null &
@@ -85,11 +85,15 @@ hook global WinSetOption filetype=xiki %{
     }
     add-highlighter window/xiki group
     add-highlighter window/xiki/dirs regex '^\h*([^\n]*/|\.|\.\.|[~/][^\n]*)$' 1:blue
+    add-highlighter window/xiki/comment regex '^\h*# [^\n]*' 0:comment
     hook -once -always window WinSetOption filetype=.* %{
         remove-hooks window xiki
     }
 }
 
+hook global WinCreate '.*\.menu' %{
+    set-option window filetype xiki
+}
 hook global WinCreate \*doc-xiki\* %{
     map window normal <ret> 'x: xiki<ret>'
     hook window -once NormalIdle .* %{

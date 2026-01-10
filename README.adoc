@@ -10,12 +10,7 @@ that does not depend on heavyweight dependencies like Ruby or Emacs.
 See link:./doc/xiki.asciidoc[`:doc xiki`] for more information
 
 == Installation
-Xiki is written in POSIX shell and https://skarnet.org/software/execline[execline]
-which is a required dependency. It should be available in your favourite package manager.
-
-However, knowledge of execline is not necessary to configure and extend Xiki or to define new rules.
-Any programming language can be used for this, though POSIX shell is preferred due to its ubiquity.
-execline is used as a "router" of sorts to match rules with regex and dispatch to the appropriate script.
+Xiki is written in Zig which is a required dependency for building.
 
 === With kak-bundle
 [source,kak]
@@ -37,17 +32,11 @@ bundle-install-hook xiki.kak %{
 }
 ----
 
-=== Semi-automatic installation
-Clone or download the repo to a location and `cd` into it.
-
-Run `./install`
-
-Also copy `rc/xiki.kak` and `doc/xiki.asciidoc` to `%val{config}/autoload`
-
 === Manual installation
-* Copy `rc/xiki.kak` to `%val{config}/autoload`.
-* Copy `doc` to `%val{config}/autoload`
-* Install `xiki` at a location visible in `$PATH`. For example `~/.local/bin`
-* Install `default` to `~/.config/xiki/.*`
-** Be careful about globbing
-* Install `scripts/` to `~/.config/xiki/scripts`
+[source,bash]
+----
+cp -rf rc doc -t ~/.config/kak/autoload/
+cp xiki ~/.local/bin
+mkdir -p ~/.config/xiki
+cp -rf default scripts -t ~/.config/xiki/
+----
