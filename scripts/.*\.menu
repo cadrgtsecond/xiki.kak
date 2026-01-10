@@ -1,0 +1,4 @@
+#!/bin/sh
+[ -z "$2" ] && cat "$1"
+shift
+exec xiki "$@"
