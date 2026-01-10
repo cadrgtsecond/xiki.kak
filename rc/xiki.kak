@@ -39,7 +39,7 @@ END
                 eval set -- "$kak_quoted_reg_c"
                 IFS=''
                 {
-                    xiki "$@" 2>&1 | \
+                    xiki "$@" 2>&1 | sed -e '$a\' | \
                         while read -r line; do
                             line=$(printf %s "$line" | sed "s/^/  $kak_reg_i/;s/%/%%/g;s/↕/↕↕/g")
                             kak -p "$kak_session" <<KAKOUNE
@@ -71,7 +71,7 @@ xiki-clear %{
         execute-keys 'x<a-:>'
         set-register i ''
         try %{ execute-keys -draft 's\A\s+<ret>"iy' }
-        execute-keys ';Ges(?S)\A(\n<c-r>i .*|\n)+<ret>_xd'
+        execute-keys ';Ges(?S)\A(\n<c-r>i .*|\s)+<ret>_Jxd'
     }
 }
 define-command -docstring "Execute the current line as a Xiki command, or clear it if already executed" \
@@ -95,7 +95,8 @@ hook global WinCreate '.*\.menu' %{
     set-option window filetype xiki
 }
 hook global WinCreate \*doc-xiki\* %{
-    map window normal <ret> 'x: xiki<ret>'
+    map window normal <ret> 'x<a-:><a-;>: xiki<ret>;'
+    map window normal <a-ret> 'x: xiki-execute -fifo<ret>'
     hook window -once NormalIdle .* %{
         set-option buffer readonly false
     }

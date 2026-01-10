@@ -84,13 +84,13 @@ By commands I really do mean _any_ command
     # So you can copy stuff outside
     cp coolcommand ../better-src 
   better-src
-  rm -rfi src
+  rm -rfv src
 ----
 
 This feature allows Xiki to be more powerful than a regular file manager.
 A regular file manager requires file manipulation to be built in,
 or alternatively scripted in.
-However, Xiki behaves like a shell, and so it can reuse all the standard utilities
+However, Xiki behaves like a shell, and so it reuses all the standard utilities
 for file manipulation.
 
 Furthermore, Xiki, residing inside Kakoune,
@@ -104,7 +104,7 @@ can make use of its powerful editing commands for file manipulation.
   seq 1 10
   .
   # Clean up the mess
-  rm *.txt
+  rm -v *.txt
 ----
 
 == Xiki as a plumber
@@ -125,25 +125,29 @@ and finally the command you have pressed `<ret>` on.
 
 Then it invokes the `xiki` command with each component of the path being an argument,
 `$1`, `$2` etc.
-So `$1` will be the topmost command, `$2` the one below it, and so on.
+So `$1` will be the topmost command, `$2` the one below it, and so on,
+with the last command being the one you pressed `<ret>` on.
 
-It is not necessary to understand the code of `xiki`, for it is written in `execline`.
-However, it is a very simple script.
+`xiki` is a very simple program.
 
-1. First, it checks if any of the patterns under `$XIKI_CONFIG/scripts` matches `$1` +
-** Each file under `$XIKI_CONFIG/scripts` is an executable file
+1. First, it checks if any of the patterns under `$XIKI_HOME/scripts` matches `$1` +
+** Each file under `$XIKI_HOME/scripts` is an executable file
    whose name is a valid Extended Regular Expression. +
 
-2. If none of the patterns match, it executes `$XIKI_CONFIG/.*` +
-** Note that this file is special. Any scripts for matching go under `scripts/`. +
-  `.*` is named as such for convenient reasons.
+2. If none of the patterns match, it executes `$XIKI_HOME/default`
 
 By default `XIKI_CONFIG` is set to `$XDG_CONFIG_DIR/xiki`,
 which on most systems is `~/.config/xiki/`
 
-Let us look at some examples
+Try looking at what all scripts are available on your system
 
-=== scripts/~
+----
+~/.config/xiki/scripts
+----
+
+The best way to learn how to write custom commands is to see some examples.
+
+=== ~
 ----
 #!/bin/sh
 [ -z "$2" ] && exec ls -p "$HOME"
@@ -154,7 +158,8 @@ exec xiki "$@"
 
 This pattern matches the string "~" representing the home directory.
 
-Notice that the script begins with a shebang `#!/bin/sh`.
+Notice that the script begins with a shebang `#!/bin/sh`,
+and is executable.
 You can write Xiki scripts in any programming language.
 `/bin/sh` is preferred due to its portability.
 
@@ -163,7 +168,7 @@ Hence, it execs into `ls`, leaving the program.
 
 However, if it does have children, then it does a `cd`, and then shifts its arguments.
 
-If you are not aware, `shift` is a shell builtin that shifts the command line arguments.
+`shift` is a shell builtin that shifts the command line arguments.
 In other words +
 * `$1` is removed +
 * `$2` becomes `$1` +
@@ -178,10 +183,13 @@ This pattern is very common in Xiki scripts. +
 ** If it is absent, perform some behaviour. +
 * If it is present, perform some action, `shift`, and then `exec xiki "$@"` with modified arguments.
 
-=== .*
+It is left an exercise to the reader to understand the more complex `~(\x2F.*)?`
 
-Now we are ready to tackle the default `.*` file.
-This shall explain all the behaviour you saw above.
+=== default
+
+Now we are ready to tackle the default `default` file.
+
+This is the command that is run when no pattern matches.
 
 ----
 #!/bin/sh
@@ -200,46 +208,54 @@ exec xiki "$@"
 
 The first part is identical to our example above, just with an arbitrary directory instead of `~`.
 
-If it is an executable file, execute it.
+If it is a directory, `ls` it if appropriate. Otherwise, `cd` into it and `exec` into the rest of the commands +
+If it is an executable file, execute it. +
 If it is a regular file, use `xdg-open` on it to open it.
 
-The final part is crucial. If there are no children, we execute "$1" as a shell command.
+If there are no children, we execute "$1" as a shell command.
+You could replace this part with you favourite shell interpreter
+e.g `fish`, `zsh`, `bash`. Or even something non-interactive such as `execlineb`.
+This flexibility is one of the most powerful parts of Xiki.
 
 If there is a child, then we shift and exec, essentially executing the child command instead of the parent.
 This is what allows our `seq` example from above to function.
 
-=== https?:.*
+This may seem a little dangerous.
 
-Returning to the `xdg-open` example,
-note that `xdg-open` is not doing much.
-The actual pattern matching is done by Xiki!
-
-Our https:// example uses a script `https?:.*`
+For example one may `cat` a file and then accidentally execute its contents.
+This may be desirable at times(e.g to get a shellscript notebook), but you may not like this.
+You can fix this(if you wish to do so) by simply replacing the last three lines with an unconditional exec
 
 ----
-#!/bin/sh
-[ -z "$BROWSER" ] && exec xdg-open "$1"
-"$BROWSER" "$1"
+- [ -z "$2" ] && exec sh -c "$1"
+- shift
+- exec xiki "$@"
++ exec sh -c "$1"
 ----
 
-We don't care about children here, since running a browser won't usually produce any output.
+== Xiki as plain text
 
-=== \.grep .*
+You have seen some various examples of Xiki being useful to do a lot of interesting things.
 
-Xiki also has many other powerful scripts. A good example is the .grep script.
+The most powerful aspect of Xiki is the fact that it is plain text.
+It is possible to save a Xiki buffer and then reopen it at a later time!
+
+This allows Xiki to replace features like shell aliases.
+Because instead aliasing common commands.
+You can simply save them all in a file
 
 ----
-/tmp/xiki-tutorial
-   echo "one naughty boy" >> naughtylist
-   echo "one naughty girl" >> naughtylist
-   echo "one good boy" >> naughtylist
-   echo "many good girls" >> naughtylist
-   cat naughtylist
-   # Btw, the output is also a Xiki command. Try modifying it to make all the children good!
-   .grep naughty naughtylist
+cargo fmt
+cargo build
+cargo run
 ----
 
-In general, special xiki commands should begin with a dot by convention.
+Files saved with the `.menu` extension are understood to be Xiki,
+and are enabled with Xiki features by default.
+
+Now, you can simply press `<ret>` on whichever command you want without ever having to type a single word!
+
+Thanks to the `.*\.menu` command, pressing `<ret>` on such a filename will `cat` the file, while allowing executing the children.
 
 == Conclusion
 
