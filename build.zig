@@ -14,7 +14,8 @@ pub fn build(b: *std.Build) void {
             .link_libc = true,
         }),
     });
-
+    exe.addIncludePath(b.path("src/"));
+    exe.addCSourceFile(.{ .file = b.path("src/regex_init.c") });
     b.installArtifact(exe);
 
     const run_step = b.step("run", "Run the app");

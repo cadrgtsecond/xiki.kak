@@ -1,6 +1,7 @@
 const std = @import("std");
 const re = @cImport({
     @cInclude("regex.h");
+    @cInclude("regex_init.h");
 });
 
 pub fn main() !void {
@@ -46,10 +47,10 @@ pub fn main() !void {
         if (entry.kind != .file) {
             continue;
         }
-        const preg = try alloc.create(re.regex_t);
+        const preg = re.init_regex_t();
         defer {
             re.regfree(preg);
-            alloc.destroy(preg);
+            re.cleanup_regex_t(preg);
         }
 
         const comp_res = re.regcomp(preg, entry.basename, re.REG_EXTENDED);
@@ -62,7 +63,7 @@ pub fn main() !void {
 
         const arg1 = args[1];
 
-        const matches = try alloc.alloc(re.regmatch_t, preg.re_nsub + 1);
+        const matches = try alloc.alloc(re.regmatch_t, re.regex_nsub(preg) + 1);
         defer alloc.free(matches);
         const match_res = re.regexec(preg, arg1, matches.len, matches.ptr, 0);
         if (match_res != 0 or matches[0].rm_so != 0 or matches[0].rm_eo != arg1.len) {
