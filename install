@@ -1,16 +1,23 @@
 #!/bin/sh
 set -eu
 XDG_CONFIG_HOME=${XDG_CONFIG_HOME:-~/.config}
-XIKI_HOME=${XIKI_HOME:-"$XDG_CONFIG_HOME"}
+XIKI_HOME=${XIKI_HOME:-"$XDG_CONFIG_HOME/xiki"}
 zig build --release=safe
-mkdir -p "$XDG_CONFIG_HOME/xiki/scripts"
-cp -rf ./scripts "$XDG_CONFIG_HOME/xiki/scripts"
-cp -f ./default "$XDG_CONFIG_HOME/xiki/default"
+
+cd scripts
+for file in *; do
+    printf '%s\n' "$XIKI_HOME/scripts/builtin/$file"
+    install -D "$file" "$XIKI_HOME/scripts/builtin/$file"
+done
+cd ..
+printf '%s\n' "$XIKI_HOME/default"
+[ ! -x "$XIKI_HOME/default" ] && install -D ./default "$XIKI_HOME/default"
 
 IFS=':'
 for i in $PATH; do
     if [ "$i" = ~/.local/bin ]; then
-        cp -f ./zig-out/bin/xiki -t ~/.local/bin
+        printf '%s/.local/bin\n' "$HOME"
+        install ./zig-out/bin/xiki -t ~/.local/bin
         break
     fi
 done

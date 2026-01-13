@@ -1,4 +1,4 @@
 #!/bin/sh
-newpath=$(printf "$1" | sed "s/^~/$(printf %s "$HOME" | sed 's@/@\\/@g')/g")
+newpath=$(printf %s "$1" | sed "s/^~/$(printf %s "$HOME" | sed 's@/@\\/@g')/g")
 shift
 exec xiki "$newpath" "$@"
