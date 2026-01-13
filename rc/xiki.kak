@@ -37,8 +37,7 @@ END
             # $kak_session
             if [ -z "$1" ]; then
                 eval set -- "$kak_quoted_reg_c"
-                IFS='
-                '
+                IFS=''
                 {
                     xiki "$@" 2>&1 | awk 1 | \
                         while read -r line; do
