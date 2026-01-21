@@ -17,8 +17,8 @@ Xiki is written in Zig which is a required dependency for building.
 ----
 bundle xiki.kak https://github.com/cadrgtsecond/xiki.kak %{
     hook global WinSetOption filetype=xiki %{
-        map window normal <ret> ': xiki<ret>'
-        map window normal <a-ret> ': xiki-execute -fifo<ret>'
+        map window normal <ret> 'x<a-:><a-;>: xiki<ret>'
+        map window normal <a-ret> 'x: xiki-execute -fifo<ret>'
     }
 
     # Scratch buffer should use Xiki!
