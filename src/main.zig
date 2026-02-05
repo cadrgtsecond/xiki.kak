@@ -44,8 +44,20 @@ pub fn main() !void {
     var walker = try scripts_dir.walk(alloc);
     defer walker.deinit();
     while (try walker.next()) |entry| {
-        if (entry.kind != .file) {
-            continue;
+        switch (entry.kind) {
+            .sym_link => {
+                // walker.name_buffer already contains the path
+                // So we don't need to push it
+                // See `std.fs.Dir.Walker.next`
+                const dir = try scripts_dir.openDir(entry.path, .{ .iterate = true });
+                try walker.stack.append(alloc, .{
+                    .iter = dir.iterateAssumeFirstIteration(),
+                    .dirname_len = walker.name_buffer.items.len - 1,
+                });
+                continue;
+            },
+            .file => {},
+            else => continue,
         }
         const preg = re.init_regex_t();
         defer {
