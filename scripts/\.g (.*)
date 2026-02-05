@@ -1,0 +1,13 @@
+#!/bin/sh
+if [ -z "$2" ]; then
+    # TODO: Detect a better grep if present
+    grep -RHn "$ARG1" *
+else
+    file=$(printf %s "$2" | cut -d: -f1)
+    line=$(printf %s "$2" | cut -d: -f2)
+    kak -p "$kak_session" <<____END
+    evaluate-commands -client '$kak_client' %{
+        edit '$PWD/$file'
+    }
+____END
+fi

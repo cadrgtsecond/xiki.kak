@@ -1,7 +1,0 @@
-#!/bin/sh
-
-if [ -z "$2" ]; then
-    printf %s "$1" | sed "s/.grep/grep -Hn/" | sh
-    exit
-fi
-exit 1

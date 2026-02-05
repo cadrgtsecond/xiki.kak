@@ -1,0 +1,16 @@
+#!/bin/sh
+printf 'Success!\n'
+if [ -z "$2" ]; then
+    # TODO: Detect a better grep if present
+    grep -RHn "$ARG1" *
+else
+    file=$(printf %s "$2" | cut -d: -f1)
+    line=$(printf %s "$2" | cut -d: -f2)
+    content=$(printf %s "$2" | cut -d: -f3-)
+    ed "+$line" "$file" <<END
+c
+${content}
+.
+w
+END
+fi
